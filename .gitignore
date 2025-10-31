@@ -1,0 +1,18 @@
+# python
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+.coverage
+.pytest_cache/
+dist/
+build/
+
+# editor
+.vscode/
+.idea/
+.DS_Store
+
+# containers
+*.log
