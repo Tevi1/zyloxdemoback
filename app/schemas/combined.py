@@ -1,18 +1,17 @@
 # Combiner schema
 from pydantic import BaseModel, Field
 
-class CombinerSchema_AgentContributions(BaseModel):
-    legal: str
-    marketing: str
-    operations: str
-    strategy: str
-    analyst: str
-    finance: str
+class NextStepItem(BaseModel):
+    owner: str
+    step: str
+    due_days: int
 
 class CombinerSchema(BaseModel):
-    final_summary: str
-    key_takeaways: list[str]
-    agent_contributions: CombinerSchema_AgentContributions
-    disagreements: list[str]
-    confidence_overall: float = Field(ge=0, le=1)
+    direct_answer: str
+    why: list[str]
+    risks: list[str]
+    next_steps: list[NextStepItem]
+    data_requests: list[str]
+    provenance: list[str]
+    confidence: float = Field(ge=0, le=1)
 
