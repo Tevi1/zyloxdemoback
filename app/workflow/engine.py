@@ -16,7 +16,7 @@ from app.schemas.roles import (
     StrategySchema, AnalystSchema, FinanceSchema
 )
 from app.schemas.debate import AddDebateSchema
-from app.schemas.combined import CombinerSchema
+from app.schemas.combined import CombinerSchema, FormatterSchema
 from app.utils.progress import emit
 from app.agents.roles import (
     classifier_agent, legal_agent, marketing_agent, ops_agent,
@@ -118,15 +118,15 @@ async def run_workflow(question: str):
         f"Debate: {debate.model_dump_json()}"
     )
     combined: CombinerSchema = await _json(combiner_agent, combiner_agent.instructions, combine_user, CombinerSchema)
-    await emit("combine:end", {"confidence_overall": combined.confidence_overall})
+    await emit("combine:end", {"confidence": combined.confidence})
 
-    # 5) Formatter (text)
+    # 5) Formatter (structured output)
     await emit("format:start")
-    formatted = await _text(formatter_agent, f"final_json:\n{combined.model_dump_json()}")
+    formatted: FormatterSchema = await _json(formatter_agent, formatter_agent.instructions, f"final_json:\n{combined.model_dump_json()}", FormatterSchema)
     await emit("format:end")
 
     return {
-        "executive_brief": formatted,
+        "formatted": formatted.model_dump(),
         "weights": weights.model_dump(),
         "debate": debate.model_dump(),
         "combined": combined.model_dump(),

@@ -55,9 +55,32 @@ async def ask_test(req: AskRequest):
     if not q:
         raise HTTPException(status_code=400, detail="Missing 'question'")
     
-    # Return mock data instantly
+    # Return mock data instantly matching new formatter schema
     return {
-        "executive_brief": f"**Mock Response for: {q}**\n\nThis is a test response that demonstrates the format without calling OpenAI.\n\n**Why this matters**\n- Fast response for testing\n- No API costs\n- Shows expected data structure\n\n**✅ Actions**\n- Test your frontend integration\n- Add OpenAI credits when ready for real responses\n- Switch to /ask endpoint for production\n\n**🧩 Team views**\n- All agents would analyze this question from their perspective\n- Debate would surface key conflicts\n- Combiner would synthesize insights\n\n**🗓️ Cadence**\n- Ready to go live once OpenAI credits are added",
+        "formatted": {
+            "title": f"Mock: {q[:50]}",
+            "tldr": "This is a test response demonstrating the new format without calling OpenAI.",
+            "decision": "Test mode active. This endpoint returns mock data for frontend integration testing. Add OpenAI credits to your account and switch to the /ask endpoint for real multi-agent analysis. The response structure matches production format.",
+            "next": [
+                {"owner": "Founder", "task": "Add OpenAI credits to account", "due": "7d"},
+                {"owner": "Developer", "task": "Switch frontend to /ask endpoint", "due": "14d"}
+            ],
+            "risks": [
+                "Mock data does not reflect real analysis",
+                "Production may have different latency (2-5min vs instant)"
+            ],
+            "assumptions": [
+                "Using test endpoint for development only",
+                "Will switch to production /ask endpoint"
+            ],
+            "metrics_to_watch": [
+                "API response time",
+                "OpenAI credit usage",
+                "Agent confidence scores"
+            ],
+            "confidence": 0.5,
+            "provenance": ["test-data-generator"]
+        },
         "weights": {
             "legal": 15.0,
             "marketing": 20.0,
@@ -88,22 +111,23 @@ async def ask_test(req: AskRequest):
             "notes_for_combiner": "Test mode - no real analysis performed"
         },
         "combined": {
-            "final_summary": f"Mock response for question: {q}",
-            "key_takeaways": [
-                "This is a test response",
-                "Frontend integration can be tested",
+            "direct_answer": f"Mock response for: {q}",
+            "why": [
+                "This is test mode with mock data",
+                "Frontend can be tested without API costs",
                 "Switch to /ask for real analysis"
             ],
-            "agent_contributions": {
-                "legal": "Mock legal analysis",
-                "marketing": "Mock marketing analysis",
-                "operations": "Mock operations analysis",
-                "strategy": "Mock strategy analysis",
-                "analyst": "Mock analyst analysis",
-                "finance": "Mock finance analysis"
-            },
-            "disagreements": ["No real analysis in test mode"],
-            "confidence_overall": 0.5
+            "risks": [
+                "Test data only",
+                "Not actual analysis"
+            ],
+            "next_steps": [
+                {"owner": "Founder", "step": "Add OpenAI credits", "due_days": 7},
+                {"owner": "Developer", "step": "Update to /ask endpoint", "due_days": 14}
+            ],
+            "data_requests": ["OpenAI API credits"],
+            "provenance": ["test-data-generator"],
+            "confidence": 0.5
         },
         "roles": {
             "legal": {"summary": "Mock legal response", "identified_risks": [], "relevant_regulations": [], "confidence": 0.5},

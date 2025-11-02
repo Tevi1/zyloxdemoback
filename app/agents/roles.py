@@ -11,7 +11,7 @@ from app.schemas.roles import (
     StrategySchema, AnalystSchema, FinanceSchema
 )
 from app.schemas.debate import AddDebateSchema
-from app.schemas.combined import CombinerSchema
+from app.schemas.combined import CombinerSchema, FormatterSchema
 from app.tools.retrieval import (
     legal_retrieval, marketing_retrieval, ops_retrieval,
     strategy_retrieval, analyst_retrieval, finance_retrieval
@@ -100,14 +100,28 @@ Tasks:
 3. Produce a single decision with direct_answer, why (3-5 bullets), risks (top 3), next_steps with owners, data_requests.
 Rules: prefer intersections (claims supported by ≥2 roles). If key data missing, give a conditional recommendation and request the data. Return strict JSON only."""
 
-FORMATTER_SYS = """You are the Formatter. Input: the Combiner JSON.
-Output schema: {{"title":string,"answer":string,"why":[string],"risks":[string],"next_steps":[{{"owner":string,"step":string,"due_days":int}}],"data_requests":[string],"confidence_label":string}}
+FORMATTER_SYS = """You are the Formatter. Input is a Combiner JSON with the decision.
+Output STRICT MINIFIED JSON matching this schema:
+
+{{
+  "title": "string (<=60 chars)",
+  "tldr": "string (<=160 chars, one-sentence answer)",
+  "decision": "string (2–4 short paragraphs max)",
+  "next": [{{"owner":"string","task":"string","due":"ISO date or '7d'"}}],
+  "risks": ["string","string"],
+  "assumptions": ["string"],
+  "metrics_to_watch": ["string"],
+  "confidence": "number 0–1",
+  "provenance": ["string"]
+}}
+
 Rules:
-- title ≤60 chars echoing the user's intent
-- answer is conversational executive summary (2-4 sentences)
-- bullets ≤140 chars
-- confidence_label like 'High (0.78)' or 'Medium (0.54)' or 'Low (0.32)'
-Return strict JSON only."""
+- Be concrete, non-hedged. Write for a founder.
+- No preambles or headings beyond the schema.
+- Bullets <= 120 chars. No more than 5 bullets in any list.
+- If data was missing, state it in 'assumptions' and keep confidence ≤ 0.5.
+- Dates default to 14 days from now if 'due' missing (format: '14d' or ISO date).
+- Return MINIFIED JSON ONLY."""
 
 # Agent definitions (Agents SDK). Tools: function tools from retrieval.py
 classifier_agent = Agent(
@@ -186,7 +200,7 @@ formatter_agent = Agent(
     name="Formatter",
     instructions=FORMATTER_SYS,
     model="gpt-5",
-    tools=[]
-    # No output_type for formatter - it returns plain text
+    tools=[],
+    output_type=FormatterSchema
 )
 
